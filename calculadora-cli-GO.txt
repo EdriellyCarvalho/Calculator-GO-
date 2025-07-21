@@ -1,0 +1,107 @@
+package main
+
+import (
+	"bufio"
+	"fmt"
+	"os"
+	"strings"
+)
+
+func somar(a, b float64) float64 {
+	return a + b
+}
+func subtrair(a, b float64) float64 {
+	return a - b
+}
+func multiplicar(a, b float64) float64 {
+	return a * b
+}
+func dividir(a, b float64) float64 {
+	if b == 0 {
+		fmt.Println("Erro: divisão por zero")
+		return 0
+	}
+	return a / b
+}
+
+func main() {
+	reader := bufio.NewReader(os.Stdin)
+	for {
+		fmt.Println("Digite a operação completa (ex: 10 + 5 * 2)")
+		fmt.Print("> ")
+
+		entrada, _ := reader.ReadString('\n')
+		entrada = strings.TrimSpace(strings.ToLower(entrada))
+		if entrada == "sair" {
+			fmt.Println("Obrigada! Até logo")
+			break
+		}
+		elementos := strings.Fields(entrada)
+
+		if len(elementos) < 3 || len(elementos)%2 == 0 {
+			fmt.Println("Entrada inválida. Use o formato: número operador número operador")
+			continue
+		}
+
+		var numeros []float64
+		var operadores []string
+		valido := true
+
+		for i := 0; i < len(elementos); i++ {
+			if i%2 == 0 {
+				var num float64
+				_, err := fmt.Sscanf(elementos[i], "%f", &num)
+				if err != nil {
+					fmt.Println("Número inválido:", elementos[i])
+					valido = false
+					break
+				}
+				numeros = append(numeros, num)
+			} else {
+				op := elementos[i]
+				if op != "+" && op != "-" && op != "*" && op != "/" {
+					fmt.Println("Operador inválido:", op)
+					valido = false
+					break
+				}
+				operadores = append(operadores, op)
+			}
+		}
+		if !valido {
+			continue
+		}
+
+		for i := 0; i < len(operadores); {
+			if operadores[i] == "*" || operadores[i] == "/" {
+				var res float64
+				if operadores[i] == "*" {
+					res = multiplicar(numeros[i], numeros[i+1])
+				} else {
+					res = dividir(numeros[i], numeros[i+1])
+				}
+				numeros[i] = res
+				numeros = append(numeros[:i+1], numeros[i+2:]...)
+				operadores = append(operadores[:i], operadores[i+1:]...)
+			} else {
+				i++
+			}
+		}
+		resultado := numeros[0]
+		for i, op := range operadores {
+			if op == "+" {
+				resultado = somar(resultado, numeros[i+1])
+			} else {
+				resultado = subtrair(resultado, numeros[i+1])
+			}
+		}
+		fmt.Printf("Resultado: %.2f\n", resultado)
+		fmt.Print("\nDeseja fazer outra operação? (s para sim / qualquer tecla para sair / digite 'sair' a qualquer momento): ")
+		resposta, _ := reader.ReadString('\n')
+		resposta = strings.TrimSpace(strings.ToLower(resposta))
+		if resposta != "s" {
+			fmt.Println("Obrigada. Até logo!")
+			break
+		}
+
+	}
+}
